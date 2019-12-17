@@ -19,9 +19,13 @@ exports.hook_data_post = function (next, connection) {
     // need to parse children [0] here for only passing the right stuff through.
     var body = connection.transaction.body.children[0].bodytext;
     var domain = connection.transaction.body.header.get("from").replace(/.*@/, "");
+    domain = domain.replace(">","");
+    domain = domain.trim();
+    
     this.loginfo("from_domain:"+domain);
 
-    if(domain != 'digitalocean.com') {
+    if(domain != "digitalocean.com" && domain != "netnomes.com") {
+ //       this.loginfo("digitalocean.com != "+domain+" != netnomes.com");
         next();
         return;
     }
@@ -29,6 +33,7 @@ exports.hook_data_post = function (next, connection) {
     var redis = require("redis");
     var publisher = redis.createClient();
     publisher.publish("operations-robot-msgs", "from:"+connection.transaction.body.header.get("from")+" "+"subject:"+connection.transaction.body.header.get("subject")+" "+body+"\n\n.");
+//    this.loginfo("from:"+connection.transaction.body.header.get("from")+" "+"subject:"+connection.transaction.body.header.get("subject")+" "+body+"\n\n.");
 
     next();
 }
